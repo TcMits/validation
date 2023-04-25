@@ -13,7 +13,7 @@ import (
 func TestNotIn(t *testing.T) {
 	v := 1
 	var v2 *int
-	var tests = []struct {
+	tests := []struct {
 		tag    string
 		values []interface{}
 		value  interface{}

@@ -30,7 +30,7 @@ Go 1.13 or above.
 
 ## Getting Started
 
-The validation package mainly includes a set of validation rules and two validation methods. You use 
+The validation package mainly includes a set of validation rules and two validation methods. You use
 validation rules to describe how a value should be considered valid, and you call either `validation.Validate()`
 or `validation.ValidateStruct()` to validate the value.
 
@@ -45,28 +45,28 @@ go get github.com/jellydator/validation
 
 ### Validating a Simple Value
 
-For a simple value, such as a string or an integer, you may use `validation.Validate()` to validate it. For example, 
+For a simple value, such as a string or an integer, you may use `validation.Validate()` to validate it. For example,
 
 ```go
 package main
 
 import (
-	"fmt"
+    "fmt"
 
-	"github.com/jellydator/validation"
-	"github.com/jellydator/validation/is"
+    "github.com/jellydator/validation"
+    "github.com/jellydator/validation/is"
 )
 
 func main() {
-	data := "example"
-	err := validation.Validate(data,
-		validation.Required,       // not empty
-		validation.Length(5, 100), // length between 5 and 100
-		is.URL,                    // is a valid URL
-	)
-	fmt.Println(err)
-	// Output:
-	// must be a valid URL
+    data := "example"
+    err := validation.Validate(data,
+        validation.Required,       // not empty
+        validation.Length(5, 100), // length between 5 and 100
+        is.URL,                    // is a valid URL
+    )
+    fmt.Println(err)
+    // Output:
+    // must be a valid URL
 }
 ```
 
@@ -80,35 +80,35 @@ return nil if the value passes all validation rules.
 For a struct value, you usually want to check if its fields are valid. For example, in a RESTful application, you
 may unmarshal the request payload into a struct and then validate the struct fields. If one or multiple fields
 are invalid, you may want to get an error describing which fields are invalid. You can use `validation.ValidateStruct()`
-to achieve this purpose. A single struct can have rules for multiple fields, and a field can be associated with multiple 
+to achieve this purpose. A single struct can have rules for multiple fields, and a field can be associated with multiple
 rules. For example,
 
 ```go
 type Address struct {
-	Street string
-	City   string
-	State  string
-	Zip    string
+    Street string
+    City   string
+    State  string
+    Zip    string
   User struct {
     Name string
   }
 }
 
 func (a Address) Validate() error {
-	return validation.ValidateStruct(&a,
-		// Street cannot be empty, and the length must between 5 and 50
-		validation.Field(&a.Street, validation.Required, validation.Length(5, 50)),
-		// City cannot be empty, and the length must between 5 and 50
-		validation.Field(&a.City, validation.Required, validation.Length(5, 50)),
-		// State cannot be empty, and must be a string consisting of two letters in upper case
-		validation.Field(&a.State, validation.Required, validation.Match(regexp.MustCompile("^[A-Z]{2}$"))),
-		// State cannot be empty, and must be a string consisting of five digits
-		validation.Field(&a.Zip, validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
-		// User.Name cannot be empty, and the length must between 5 and 50
-		validation.FieldStruct(
+    return validation.ValidateStruct(&a,
+        // Street cannot be empty, and the length must between 5 and 50
+        validation.Field(&a.Street, validation.Required, validation.Length(5, 50)),
+        // City cannot be empty, and the length must between 5 and 50
+        validation.Field(&a.City, validation.Required, validation.Length(5, 50)),
+        // State cannot be empty, and must be a string consisting of two letters in upper case
+        validation.Field(&a.State, validation.Required, validation.Match(regexp.MustCompile("^[A-Z]{2}$"))),
+        // State cannot be empty, and must be a string consisting of five digits
+        validation.Field(&a.Zip, validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
+        // User.Name cannot be empty, and the length must between 5 and 50
+        validation.FieldStruct(
       &a.User, validation.Field(&a.User.Name, validation.Required, validation.Length(5, 50)),
     ),
-	)
+    )
 }
 
 a := Address{
@@ -124,11 +124,11 @@ fmt.Println(err)
 // Street: the length must be between 5 and 50; State: must be in a valid format.
 ```
 
-Note that when calling `validation.ValidateStruct` to validate a struct, you should pass to the method a pointer 
+Note that when calling `validation.ValidateStruct` to validate a struct, you should pass to the method a pointer
 to the struct instead of the struct itself. Similarly, when calling `validation.Field` to specify the rules
-for a struct field, you should use a pointer to the struct field. 
+for a struct field, you should use a pointer to the struct field.
 
-When the struct validation is performed, the fields are validated in the order they are specified in `ValidateStruct`. 
+When the struct validation is performed, the fields are validated in the order they are specified in `ValidateStruct`.
 And when each field is validated, its rules are also evaluated in the order they are associated with the field.
 If a rule fails, an error is recorded for that field, and the validation will continue with the next field.
 
@@ -136,65 +136,65 @@ If a rule fails, an error is recorded for that field, and the validation will co
 ### Validating a Map
 
 Sometimes you might need to work with dynamic data stored in maps rather than a typed model. You can use `validation.Map()`
-in this situation. A single map can have rules for multiple keys, and a key can be associated with multiple 
+in this situation. A single map can have rules for multiple keys, and a key can be associated with multiple
 rules. For example,
 
 ```go
 c := map[string]interface{}{
-	"Name":  "Qiang Xue",
-	"Email": "q",
-	"Address": map[string]interface{}{
-		"Street": "123",
-		"City":   "Unknown",
-		"State":  "Virginia",
-		"Zip":    "12345",
-	},
+    "Name":  "Qiang Xue",
+    "Email": "q",
+    "Address": map[string]interface{}{
+        "Street": "123",
+        "City":   "Unknown",
+        "State":  "Virginia",
+        "Zip":    "12345",
+    },
 }
 
 err := validation.Validate(c,
-	validation.Map(
-		// Name cannot be empty, and the length must be between 5 and 20.
-		validation.Key("Name", validation.Required, validation.Length(5, 20)),
-		// Email cannot be empty and should be in a valid email format.
-		validation.Key("Email", validation.Required, is.Email),
-		// Validate Address using its own validation rules
-		validation.Key("Address", validation.Map(
-			// Street cannot be empty, and the length must between 5 and 50
-			validation.Key("Street", validation.Required, validation.Length(5, 50)),
-			// City cannot be empty, and the length must between 5 and 50
-			validation.Key("City", validation.Required, validation.Length(5, 50)),
-			// State cannot be empty, and must be a string consisting of two letters in upper case
-			validation.Key("State", validation.Required, validation.Match(regexp.MustCompile("^[A-Z]{2}$"))),
-			// State cannot be empty, and must be a string consisting of five digits
-			validation.Key("Zip", validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
-		)),
-	),
+    validation.Map(
+        // Name cannot be empty, and the length must be between 5 and 20.
+        validation.Key("Name", validation.Required, validation.Length(5, 20)),
+        // Email cannot be empty and should be in a valid email format.
+        validation.Key("Email", validation.Required, is.Email),
+        // Validate Address using its own validation rules
+        validation.Key("Address", validation.Map(
+            // Street cannot be empty, and the length must between 5 and 50
+            validation.Key("Street", validation.Required, validation.Length(5, 50)),
+            // City cannot be empty, and the length must between 5 and 50
+            validation.Key("City", validation.Required, validation.Length(5, 50)),
+            // State cannot be empty, and must be a string consisting of two letters in upper case
+            validation.Key("State", validation.Required, validation.Match(regexp.MustCompile("^[A-Z]{2}$"))),
+            // State cannot be empty, and must be a string consisting of five digits
+            validation.Key("Zip", validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
+        )),
+    ),
 )
 fmt.Println(err)
 // Output:
 // Address: (State: must be in a valid format; Street: the length must be between 5 and 50.); Email: must be a valid email address.
 ```
 
-When the map validation is performed, the keys are validated in the order they are specified in `Map`. 
+When the map validation is performed, the keys are validated in the order they are specified in `Map`.
 And when each key is validated, its rules are also evaluated in the order they are associated with the key.
 If a rule fails, an error is recorded for that key, and the validation will continue with the next key.
 
 
 ### Validation Errors
 
-The `validation.ValidateStruct` method returns validation errors found in struct fields in terms of `validation.Errors` 
+The `validation.ValidateStruct` method returns validation errors found in struct fields in terms of `validation.Errors`
 which is a map of fields and their corresponding errors. Nil is returned if validation passes.
 
-By default, `validation.Errors` uses the struct tags named `json` to determine what names should be used to 
-represent the invalid fields. The type also implements the `json.Marshaler` interface so that it can be marshaled 
+By default, `validation.Errors` uses the struct tags named `json` to determine what names should be used to
+represent the invalid fields. The type also implements the `json.Marshaler` interface so that it can be marshaled
 into a proper JSON object. For example,
 
 ```go
 type Address struct {
-	Street string `json:"street"`
-	City   string `json:"city"`
-	State  string `json:"state"`
-	Zip    string `json:"zip"`
+    Street string `json:"street"`
+    City   string `json:"city"`
+    State  string `json:"state"`
+    Zip    string `json:"zip"`
 }
 
 // ...perform validation here...
@@ -213,30 +213,30 @@ tag values, you may use the following alternative approach:
 
 ```go
 c := Customer{
-	Name:  "Qiang Xue",
-	Email: "q",
-	Address: Address{
-		State:  "Virginia",
-	},
+    Name:  "Qiang Xue",
+    Email: "q",
+    Address: Address{
+        State:  "Virginia",
+    },
 }
 
 err := validation.Errors{
-	"name": validation.Validate(c.Name, validation.Required, validation.Length(5, 20)),
-	"email": validation.Validate(c.Name, validation.Required, is.Email),
-	"zip": validation.Validate(c.Address.Zip, validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
+    "name": validation.Validate(c.Name, validation.Required, validation.Length(5, 20)),
+    "email": validation.Validate(c.Name, validation.Required, is.Email),
+    "zip": validation.Validate(c.Address.Zip, validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
 }.Filter()
 fmt.Println(err)
 // Output:
 // email: must be a valid email address; zip: cannot be blank.
 ```
 
-In the above example, we build a `validation.Errors` by a list of names and the corresponding validation results. 
-At the end we call `Errors.Filter()` to remove from `Errors` all nils which correspond to those successful validation 
+In the above example, we build a `validation.Errors` by a list of names and the corresponding validation results.
+At the end we call `Errors.Filter()` to remove from `Errors` all nils which correspond to those successful validation
 results. The method will return nil if `Errors` is empty.
 
 The above approach is very flexible as it allows you to freely build up your validation error structure. You can use
-it to validate both struct and non-struct values. Compared to using `ValidateStruct` to validate a struct, 
-it has the drawback that you have to redundantly specify the error keys while `ValidateStruct` can automatically 
+it to validate both struct and non-struct values. Compared to using `ValidateStruct` to validate a struct,
+it has the drawback that you have to redundantly specify the error keys while `ValidateStruct` can automatically
 find them out.
 
 
@@ -254,63 +254,63 @@ if a returned error is an internal error or not. For example,
 
 ```go
 if err := a.Validate(); err != nil {
-	if e, ok := err.(validation.InternalError); ok {
-		// an internal error happened
-		fmt.Println(e.InternalError())
-	}
+    if e, ok := err.(validation.InternalError); ok {
+        // an internal error happened
+        fmt.Println(e.InternalError())
+    }
 }
 ```
 
 
 ## Validatable Types
 
-A type is validatable if it implements the `validation.Validatable` interface. 
+A type is validatable if it implements the `validation.Validatable` interface.
 
-When `validation.Validate` is used to validate a validatable value, if it does not find any error with the 
-given validation rules, it will further call the value's `Validate()` method. 
+When `validation.Validate` is used to validate a validatable value, if it does not find any error with the
+given validation rules, it will further call the value's `Validate()` method.
 
-Similarly, when `validation.ValidateStruct` is validating a struct field whose type is validatable, it will call 
+Similarly, when `validation.ValidateStruct` is validating a struct field whose type is validatable, it will call
 the field's `Validate` method after it passes the listed rules.
 
 > Note: When implementing `validation.Validatable`, do not call `validation.Validate()` to validate the value in its
 > original type because this will cause infinite loops. For example, if you define a new type `MyString` as `string`
-> and implement `validation.Validatable` for `MyString`, within the `Validate()` function you should cast the value 
+> and implement `validation.Validatable` for `MyString`, within the `Validate()` function you should cast the value
 > to `string` first before calling `validation.Validate()` to validate it.
 
-In the following example, the `Address` field of `Customer` is validatable because `Address` implements 
+In the following example, the `Address` field of `Customer` is validatable because `Address` implements
 `validation.Validatable`. Therefore, when validating a `Customer` struct with `validation.ValidateStruct`,
 validation will "dive" into the `Address` field.
 
 ```go
 type Customer struct {
-	Name    string
-	Gender  string
-	Email   string
-	Address Address
+    Name    string
+    Gender  string
+    Email   string
+    Address Address
 }
 
 func (c Customer) Validate() error {
-	return validation.ValidateStruct(&c,
-		// Name cannot be empty, and the length must be between 5 and 20.
-		validation.Field(&c.Name, validation.Required, validation.Length(5, 20)),
-		// Gender is optional, and should be either "Female" or "Male".
-		validation.Field(&c.Gender, validation.In("Female", "Male")),
-		// Email cannot be empty and should be in a valid email format.
-		validation.Field(&c.Email, validation.Required, is.Email),
-		// Validate Address using its own validation rules
-		validation.Field(&c.Address),
-	)
+    return validation.ValidateStruct(&c,
+        // Name cannot be empty, and the length must be between 5 and 20.
+        validation.Field(&c.Name, validation.Required, validation.Length(5, 20)),
+        // Gender is optional, and should be either "Female" or "Male".
+        validation.Field(&c.Gender, validation.In("Female", "Male")),
+        // Email cannot be empty and should be in a valid email format.
+        validation.Field(&c.Email, validation.Required, is.Email),
+        // Validate Address using its own validation rules
+        validation.Field(&c.Address),
+    )
 }
 
 c := Customer{
-	Name:  "Qiang Xue",
-	Email: "q",
-	Address: Address{
-		Street: "123 Main Street",
-		City:   "Unknown",
-		State:  "Virginia",
-		Zip:    "12345",
-	},
+    Name:  "Qiang Xue",
+    Email: "q",
+    Address: Address{
+        Street: "123 Main Street",
+        City:   "Unknown",
+        State:  "Virginia",
+        Zip:    "12345",
+    },
 }
 
 err := c.Validate()
@@ -331,9 +331,9 @@ invalid elements to their corresponding validation errors. For example,
 
 ```go
 addresses := []Address{
-	Address{State: "MD", Zip: "12345"},
-	Address{Street: "123 Main St", City: "Vienna", State: "VA", Zip: "12345"},
-	Address{City: "Unknown", State: "NC", Zip: "123"},
+    Address{State: "MD", Zip: "12345"},
+    Address{Street: "123 Main St", City: "Vienna", State: "VA", Zip: "12345"},
+    Address{City: "Unknown", State: "NC", Zip: "123"},
 }
 err := validation.Validate(addresses)
 fmt.Println(err)
@@ -341,8 +341,8 @@ fmt.Println(err)
 // 0: (City: cannot be blank; Street: cannot be blank.); 2: (Street: cannot be blank; Zip: must be in a valid format.).
 ```
 
-When using `validation.ValidateStruct` to validate a struct, the above validation procedure also applies to those struct 
-fields which are map/slices/arrays of validatables. 
+When using `validation.ValidateStruct` to validate a struct, the above validation procedure also applies to those struct
+fields which are map/slices/arrays of validatables.
 
 #### Each
 
@@ -357,9 +357,9 @@ type Customer struct {
 func (c Customer) Validate() error {
     return validation.ValidateStruct(&c,
         // Name cannot be empty, and the length must be between 5 and 20.
-		validation.Field(&c.Name, validation.Required, validation.Length(5, 20)),
-		// Emails are optional, but if given must be valid.
-		validation.Field(&c.Emails, validation.Each(is.Email)),
+        validation.Field(&c.Name, validation.Required, validation.Length(5, 20)),
+        // Emails are optional, but if given must be valid.
+        validation.Field(&c.Emails, validation.Each(is.Email)),
     )
 }
 
@@ -392,7 +392,7 @@ If a data type implements the `sql.Valuer` interface (e.g. `sql.NullString`), th
 it properly. In particular, when a rule is validating such data, it will call the `Value()` method and validate
 the returned value instead.
 
-Note that for this to work, 
+Note that for this to work,
 `validation.SetValuerProxy(validation.DefaultValuerProxy)` needs to be called
 before executing any validation functions.
 
@@ -415,18 +415,18 @@ the fields of an embedded struct are treated as if they belong directly to the c
 
 ```go
 type Employee struct {
-	Name string
+    Name string
 }
 
 type Manager struct {
-	Employee
-	Level int
+    Employee
+    Level int
 }
 
 m := Manager{}
 err := validation.ValidateStruct(&m,
-	validation.Field(&m.Name, validation.Required),
-	validation.Field(&m.Level, validation.Required),
+    validation.Field(&m.Name, validation.Required),
+    validation.Field(&m.Level, validation.Required),
 )
 fmt.Println(err)
 // Output:
@@ -442,14 +442,14 @@ If `Employee` implements the `validation.Validatable` interface, we can also use
 
 ```go
 func (e Employee) Validate() error {
-	return validation.ValidateStruct(&e,
-		validation.Field(&e.Name, validation.Required),
-	)
+    return validation.ValidateStruct(&e,
+        validation.Field(&e.Name, validation.Required),
+    )
 }
 
 err := validation.ValidateStruct(&m,
-	validation.Field(&m.Employee),
-	validation.Field(&m.Level, validation.Required),
+    validation.Field(&m.Employee),
+    validation.Field(&m.Level, validation.Required),
 )
 fmt.Println(err)
 // Output:
@@ -459,7 +459,7 @@ fmt.Println(err)
 
 ### Conditional Validation
 
-Sometimes, we may want to validate a value only when certain condition is met. For example, we want to ensure the 
+Sometimes, we may want to validate a value only when certain condition is met. For example, we want to ensure the
 `unit` struct field is not empty only when the `quantity` field is not empty; or we may want to ensure either `email`
 or `phone` is provided. The so-called conditional validation can be achieved with the help of `validation.When`.
 The following code implements the aforementioned examples:
@@ -492,8 +492,8 @@ of the rules. For example,
 ```go
 data := "2123"
 err := validation.Validate(data,
-	validation.Required.Error("is required"),
-	validation.Match(regexp.MustCompile("^[0-9]{5}$")).Error("must be a string with five digits"),
+    validation.Required.Error("is required"),
+    validation.Match(regexp.MustCompile("^[0-9]{5}$")).Error("must be a string with five digits"),
 )
 fmt.Println(err)
 // Output:
@@ -504,12 +504,12 @@ You can also customize the pre-defined error(s) of a built-in rule such that the
 instance of the rule. For example, the `Required` rule uses the pre-defined error `ErrRequired`. You can customize it
 during the application initialization:
 ```go
-validation.ErrRequired = validation.ErrRequired.SetMessage("the value is required") 
+validation.ErrRequired = validation.ErrRequired.SetMessage("the value is required")
 ```
 
 ### Error Code and Message Translation
 
-The errors returned by the validation rules implement the `Error` interface which contains the `Code()` method 
+The errors returned by the validation rules implement the `Error` interface which contains the `Code()` method
 to provide the error code information. While the message of a validation error is often customized, the code is immutable.
 You can use error code to programmatically check a validation error or look for the translation of the corresponding message.
 
@@ -531,11 +531,11 @@ it into a validation rule. For example,
 
 ```go
 func checkAbc(value interface{}) error {
-	s, _ := value.(string)
-	if s != "abc" {
-		return errors.New("must be abc")
-	}
-	return nil
+    s, _ := value.(string)
+    if s != "abc" {
+        return errors.New("must be abc")
+    }
+    return nil
 }
 
 err := validation.Validate("xyz", validation.By(checkAbc))
@@ -547,8 +547,8 @@ If your validation function takes additional parameters, you can use the followi
 
 ```go
 func stringEquals(str string) validation.RuleFunc {
-	return func(value interface{}) error {
-		s, _ := value.(string)
+    return func(value interface{}) error {
+        s, _ := value.(string)
         if s != str {
             return errors.New("unexpected string")
         }
@@ -564,25 +564,25 @@ fmt.Println(err)
 
 ### Rule Groups
 
-When a combination of several rules are used in multiple places, you may use the following trick to create a 
+When a combination of several rules are used in multiple places, you may use the following trick to create a
 rule group so that your code is more maintainable.
 
 ```go
 var NameRule = []validation.Rule{
-	validation.Required,
-	validation.Length(5, 20),
+    validation.Required,
+    validation.Length(5, 20),
 }
 
 type User struct {
-	FirstName string
-	LastName  string
+    FirstName string
+    LastName  string
 }
 
 func (u User) Validate() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.FirstName, NameRule...),
-		validation.Field(&u.LastName, NameRule...),
-	)
+    return validation.ValidateStruct(&u,
+        validation.Field(&u.FirstName, NameRule...),
+        validation.Field(&u.LastName, NameRule...),
+    )
 }
 ```
 
@@ -594,22 +594,22 @@ group to validate both `FirstName` and `LastName`.
 
 While most validation rules are self-contained, some rules may depend dynamically on a context. A rule may implement the
 `validation.RuleWithContext` interface to support the so-called context-aware validation.
- 
-To validate an arbitrary value with a context, call `validation.ValidateWithContext()`. The `context.Conext` parameter 
+
+To validate an arbitrary value with a context, call `validation.ValidateWithContext()`. The `context.Conext` parameter
 will be passed along to those rules that implement `validation.RuleWithContext`.
 
-To validate the fields of a struct with a context, call `validation.ValidateStructWithContext()`. 
+To validate the fields of a struct with a context, call `validation.ValidateStructWithContext()`.
 
-You can define a context-aware rule from scratch by implementing both `validation.Rule` and `validation.RuleWithContext`. 
+You can define a context-aware rule from scratch by implementing both `validation.Rule` and `validation.RuleWithContext`.
 You can also use `validation.WithContext()` to turn a function into a context-aware rule. For example,
 
 
 ```go
 rule := validation.WithContext(func(ctx context.Context, value interface{}) error {
-	if ctx.Value("secret") == value.(string) {
-	    return nil
-	}
-	return errors.New("value incorrect")
+    if ctx.Value("secret") == value.(string) {
+        return nil
+    }
+    return errors.New("value incorrect")
 })
 value := "xyz"
 ctx := context.WithValue(context.Background(), "secret", "example")

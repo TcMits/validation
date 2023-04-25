@@ -11,10 +11,10 @@ import (
 )
 
 func TestStringNotIn(t *testing.T) {
-	var v1 = "A"
+	v1 := "A"
 	var v2 *string
-	var v3 = "a"
-	var tests = []struct {
+	v3 := "a"
+	tests := []struct {
 		tag             string
 		isCaseSensitive bool
 		values          []string

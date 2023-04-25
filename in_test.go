@@ -11,7 +11,7 @@ import (
 )
 
 func TestIn(t *testing.T) {
-	var v = 1
+	v := 1
 	var v2 *int
 	tests := []struct {
 		tag    string
