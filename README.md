@@ -89,9 +89,9 @@ type Address struct {
     City   string
     State  string
     Zip    string
-  User struct {
-    Name string
-  }
+    User struct {
+        Name string
+    }
 }
 
 func (a Address) Validate() error {
@@ -105,9 +105,7 @@ func (a Address) Validate() error {
         // State cannot be empty, and must be a string consisting of five digits
         validation.Field(&a.Zip, validation.Required, validation.Match(regexp.MustCompile("^[0-9]{5}$"))),
         // User.Name cannot be empty, and the length must between 5 and 50
-        validation.FieldStruct(
-      &a.User, validation.Field(&a.User.Name, validation.Required, validation.Length(5, 50)),
-    ),
+        validation.FieldStruct(&a.User, validation.Field(&a.User.Name, validation.Required, validation.Length(5, 50))),
     )
 }
 
